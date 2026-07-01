@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "timecode-db-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8743"],
+      "port": 8743
+    },
+    {
+      "name": "timecode-db-scratch-preview",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /private/tmp/claude-501/-Users-stillspeeding-Desktop-Still-Speeding-Database---Timecode/03a58c2c-b074-4d19-9643-1929b2486418/scratchpad/preview-test && python3 -m http.server 8745"],
+      "port": 8745
+    }
+  ]
+}
