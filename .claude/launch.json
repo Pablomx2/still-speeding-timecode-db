@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "timecode-db-preview",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8743"],
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /tmp/still-speeding-preview && python3 -m http.server 8743"],
       "port": 8743
     },
     {
