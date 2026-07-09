@@ -479,24 +479,30 @@
                 .trim();
         }
 
-        // Simple Levenshtein edit distance, used to tolerate typos in search terms.
+        // Restricted Damerau-Levenshtein edit distance (adjacent transpositions
+        // count as a single edit, like plain Levenshtein does for insert/delete/
+        // substitute), so a swapped pair of letters ("f6x" vs "fx6") reads as one
+        // typo instead of two.
         function editDistance(a, b) {
             if (a === b) return 0;
             const al = a.length, bl = b.length;
             if (al === 0) return bl;
             if (bl === 0) return al;
-            let prev = new Array(bl + 1);
-            let curr = new Array(bl + 1);
-            for (let j = 0; j <= bl; j++) prev[j] = j;
+            const d = [];
+            for (let i = 0; i <= al; i++) d.push(new Array(bl + 1).fill(0));
+            for (let i = 0; i <= al; i++) d[i][0] = i;
+            for (let j = 0; j <= bl; j++) d[0][j] = j;
             for (let i = 1; i <= al; i++) {
-                curr[0] = i;
                 for (let j = 1; j <= bl; j++) {
                     const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-                    curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+                    let val = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+                    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+                        val = Math.min(val, d[i - 2][j - 2] + 1);
+                    }
+                    d[i][j] = val;
                 }
-                [prev, curr] = [curr, prev];
             }
-            return prev[bl];
+            return d[al][bl];
         }
 
         // How many typo'd characters we'll tolerate for a given search term length.
@@ -506,28 +512,87 @@
             return 2;
         }
 
-        // Does a single search token match this camera, allowing for spacing/
-        // punctuation variants (via the compact blob) and minor typos?
-        function tokenMatches(token, camera) {
-            if (camera._search.includes(token) || camera._compact.includes(token)) return true;
-            // Skip typo tolerance for tokens containing digits (e.g. "5pin", "3.5") —
-            // connector pin counts are meaningfully different, not typos of each other,
-            // and a leading-digit deletion is trivially "close" to any generic word.
-            if (/\d/.test(token)) return false;
-            const budget = typoBudget(token.length);
-            if (budget === 0) return false;
-            for (const word of camera._words) {
-                if (Math.abs(word.length - token.length) > budget) continue;
-                if (editDistance(token, word) <= budget) return true;
+        const onlyDigits = s => s.replace(/\D/g, "");
+
+        // Does `word` contain every character of `token` at least as many times
+        // as it appears in `token`? A loose "contains these letters" match for
+        // cases plain edit distance won't reach.
+        function charsContained(token, word) {
+            if (word.length < token.length) return false;
+            const counts = {};
+            for (const ch of word) counts[ch] = (counts[ch] || 0) + 1;
+            for (const ch of token) {
+                if (!counts[ch]) return false;
+                counts[ch]--;
             }
-            return false;
+            return true;
+        }
+
+        // Relevance tiers, highest first, so results can be sorted by match quality
+        // instead of just included/excluded.
+        const SCORE = { EXACT: 100, PREFIX: 80, SUBSTRING: 60, TYPO: 40, CONTAINS: 20 };
+
+        // Scores how well a single search token matches a single normalized word
+        // (or synthetic word-pair, see _bigrams below). `allowFuzzy` gates the
+        // typo/contains tiers off for bigrams, which are already a loose construct.
+        function wordScore(token, word, allowFuzzy) {
+            if (token === word) return SCORE.EXACT;
+            // Guard both sides' length so a throwaway single-letter word (e.g. the
+            // "L" in "fp / fp L") can't count as a "prefix" of every token that
+            // happens to start with that letter.
+            if (token.length >= 2 && word.length >= 2) {
+                if (word.startsWith(token) || token.startsWith(word)) return SCORE.PREFIX;
+                if (word.includes(token)) return SCORE.SUBSTRING;
+            }
+            if (!allowFuzzy || token.length < 3) return 0;
+            // Digit-bearing terms (pin counts, "3.5mm", etc.) are exact specs, not
+            // typo-tolerant text — "5-pin" must never fuzzy-match "9-pin" just
+            // because deleting one digit is a single cheap edit.
+            if (onlyDigits(token) !== onlyDigits(word)) return 0;
+            const budget = typoBudget(token.length);
+            if (budget > 0 && Math.abs(word.length - token.length) <= budget) {
+                const dist = editDistance(token, word);
+                if (dist <= budget) return SCORE.TYPO - dist * 5;
+            }
+            if (Math.abs(word.length - token.length) <= 2 && charsContained(token, word)) {
+                return SCORE.CONTAINS;
+            }
+            return 0;
+        }
+
+        // Best score for one token against everything in a camera: its individual
+        // words, plus adjacent word-pairs (so "5-pin", split into "5" + "pin", still
+        // matches a compact "5pin" query).
+        function tokenScore(token, camera) {
+            let best = 0;
+            for (const word of camera._words) {
+                const s = wordScore(token, word, true);
+                if (s > best) best = s;
+            }
+            for (const bigram of camera._bigrams) {
+                const s = wordScore(token, bigram, false);
+                if (s > best) best = s;
+            }
+            return best;
+        }
+
+        // Every token must match something (AND across tokens); total score sums
+        // the best per-token tier so tighter, more-tokens-matched results rank higher.
+        function queryScore(tokens, camera) {
+            let total = 0;
+            for (const t of tokens) {
+                const s = tokenScore(t, camera);
+                if (s === 0) return 0;
+                total += s;
+            }
+            return total;
         }
 
         cameraData.forEach(c => {
             const norm = normalize([c.brand, c.model, c.tc, c.audio].join(" "));
-            c._search = norm;
-            c._compact = norm.replace(/\s+/g, "");
-            c._words = [...new Set(norm.split(" ").filter(Boolean))];
+            const wordList = norm.split(" ").filter(Boolean);
+            c._words = [...new Set(wordList)];
+            c._bigrams = wordList.slice(0, -1).map((w, i) => w + wordList[i + 1]);
         });
         cameraData.sort((a, b) => collator.compare(a.brand, b.brand) || collator.compare(a.model, b.model));
 
@@ -1054,10 +1119,6 @@
 
         function render() {
             const tokens = normalize(searchInput.value.trim()).split(" ").filter(Boolean);
-            // Joining tokens with no separator lets "5 pin", "5-pin" and "5pin" all
-            // resolve to the same compact phrase, so they match identically and
-            // precisely (rather than "5" and "pin" matching anywhere independently).
-            const compactQuery = tokens.join("");
             const brand = brandFilter.value;
             const inBrand = brand === "All" ? cameraData : cameraData.filter(c => c.brand === brand);
 
@@ -1065,13 +1126,16 @@
             if (tokens.length === 0) {
                 filtered = inBrand;
             } else {
-                const phraseMatches = inBrand.filter(c => c._compact.includes(compactQuery));
-                // Only loosen to independent, typo-tolerant token matching when the
-                // exact phrase draws a blank (e.g. real typos, or genuinely separate
-                // search terms like "phantom 4k").
-                filtered = phraseMatches.length > 0
-                    ? phraseMatches
-                    : inBrand.filter(c => tokens.every(t => tokenMatches(t, c)));
+                // Score every camera independently (exact/prefix/substring beat
+                // typo-tolerant and loose "contains these letters" matches) and sort
+                // best-first, rather than an all-or-nothing include/exclude — so a
+                // typo like "ari" still surfaces Arri even if some unrelated model
+                // happens to satisfy a looser rule elsewhere.
+                filtered = inBrand
+                    .map(c => ({ c, score: queryScore(tokens, c) }))
+                    .filter(x => x.score > 0)
+                    .sort((a, b) => b.score - a.score)
+                    .map(x => x.c);
             }
 
             countDisplay.innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> DB: ${filtered.length} MODELS`;
