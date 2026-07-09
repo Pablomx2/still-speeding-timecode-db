@@ -1134,6 +1134,25 @@
             const brand = brandFilter.value;
             const inBrand = brand === "All" ? cameraData : cameraData.filter(c => c.brand === brand);
 
+            // Also try the query as one joined-together word, so spaced-out typing
+            // like "p a n a s o n i c" (or ragged chunks like "pana sonic") still
+            // resolves to "panasonic" instead of being treated as separate,
+            // near-meaningless search terms. Exact-only: this is purely for
+            // reconstructing a word split by stray spaces, not a general fuzzy
+            // pass — e.g. "canon r5" joined is "canonr5", which must NOT
+            // prefix-match the "canon" word (that would pull in every Canon
+            // camera) or "phantom 4k" joined ("phantom4k") pull in every Phantom.
+            const joinedQuery = tokens.length > 1 ? tokens.join("") : null;
+            const joinedMatch = camera => (
+                joinedQuery && (camera._words.includes(joinedQuery) || camera._bigrams.includes(joinedQuery))
+            ) ? { tier: TIER.EXACT, score: TIER_SCORE[TIER.EXACT] } : null;
+            const betterMatch = (a, b) => {
+                if (!a) return b;
+                if (!b) return a;
+                if (b.tier !== a.tier) return b.tier > a.tier ? b : a;
+                return b.score > a.score ? b : a;
+            };
+
             let filtered;
             if (tokens.length === 0) {
                 filtered = inBrand;
@@ -1144,7 +1163,10 @@
                 // still surfaces Arri even if some unrelated model happens to
                 // satisfy a looser rule elsewhere.
                 const matches = inBrand
-                    .map(c => ({ c, m: queryMatch(tokens, c) }))
+                    .map(c => ({
+                        c,
+                        m: betterMatch(queryMatch(tokens, c), joinedMatch(c))
+                    }))
                     .filter(x => x.m);
                 const bestTier = matches.reduce((best, x) => Math.max(best, x.m.tier), -1);
                 // But once a confident (exact/prefix) match exists, a typo/loose
