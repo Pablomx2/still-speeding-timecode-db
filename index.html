@@ -75,7 +75,7 @@
 
                 <div class="flex w-full sm:w-auto flex-1 items-center gap-2 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
                     <div class="relative flex-1 md:w-64">
-                        <input type="text" id="searchInput" placeholder="Search models (e.g. R5)..."
+                        <input type="text" id="searchInput" placeholder="Search models, connectors (e.g. R5, BNC, 5 pin)..."
                                class="w-full bg-transparent border-none px-4 py-2 text-sm text-white focus:ring-0 placeholder-zinc-500">
                     </div>
                     <select id="brandFilter" class="bg-black border border-zinc-800 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-300 outline-none cursor-pointer">
@@ -466,7 +466,69 @@
 
         // Pre-compute a lowercase search blob and pre-sort once (brand, then model).
         const collator = new Intl.Collator(undefined, { sensitivity: "base" });
-        cameraData.forEach(c => { c._search = (c.brand + " " + c.model).toLowerCase(); });
+
+        // Normalizes text for fuzzy search: lowercase, punctuation (hyphens,
+        // slashes, parens, quotes) collapsed to spaces so "5-pin", "5 pin"
+        // and "5pin" all line up the same way. Periods are kept so "3.5" still
+        // matches "3.5mm".
+        function normalize(str) {
+            return str
+                .toLowerCase()
+                .replace(/[\/\-(),"'`]/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        // Simple Levenshtein edit distance, used to tolerate typos in search terms.
+        function editDistance(a, b) {
+            if (a === b) return 0;
+            const al = a.length, bl = b.length;
+            if (al === 0) return bl;
+            if (bl === 0) return al;
+            let prev = new Array(bl + 1);
+            let curr = new Array(bl + 1);
+            for (let j = 0; j <= bl; j++) prev[j] = j;
+            for (let i = 1; i <= al; i++) {
+                curr[0] = i;
+                for (let j = 1; j <= bl; j++) {
+                    const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                    curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+                }
+                [prev, curr] = [curr, prev];
+            }
+            return prev[bl];
+        }
+
+        // How many typo'd characters we'll tolerate for a given search term length.
+        function typoBudget(len) {
+            if (len <= 2) return 0;
+            if (len <= 5) return 1;
+            return 2;
+        }
+
+        // Does a single search token match this camera, allowing for spacing/
+        // punctuation variants (via the compact blob) and minor typos?
+        function tokenMatches(token, camera) {
+            if (camera._search.includes(token) || camera._compact.includes(token)) return true;
+            // Skip typo tolerance for tokens containing digits (e.g. "5pin", "3.5") —
+            // connector pin counts are meaningfully different, not typos of each other,
+            // and a leading-digit deletion is trivially "close" to any generic word.
+            if (/\d/.test(token)) return false;
+            const budget = typoBudget(token.length);
+            if (budget === 0) return false;
+            for (const word of camera._words) {
+                if (Math.abs(word.length - token.length) > budget) continue;
+                if (editDistance(token, word) <= budget) return true;
+            }
+            return false;
+        }
+
+        cameraData.forEach(c => {
+            const norm = normalize([c.brand, c.model, c.tc, c.audio].join(" "));
+            c._search = norm;
+            c._compact = norm.replace(/\s+/g, "");
+            c._words = [...new Set(norm.split(" ").filter(Boolean))];
+        });
         cameraData.sort((a, b) => collator.compare(a.brand, b.brand) || collator.compare(a.model, b.model));
 
         // Fast lookup by id.
@@ -991,13 +1053,26 @@
         }
 
         function render() {
-            const query = searchInput.value.trim().toLowerCase();
+            const tokens = normalize(searchInput.value.trim()).split(" ").filter(Boolean);
+            // Joining tokens with no separator lets "5 pin", "5-pin" and "5pin" all
+            // resolve to the same compact phrase, so they match identically and
+            // precisely (rather than "5" and "pin" matching anywhere independently).
+            const compactQuery = tokens.join("");
             const brand = brandFilter.value;
-            // Data is pre-sorted, so a single filter pass preserves brand/model order.
-            const filtered = cameraData.filter(c =>
-                (brand === "All" || c.brand === brand) &&
-                (query === "" || c._search.includes(query))
-            );
+            const inBrand = brand === "All" ? cameraData : cameraData.filter(c => c.brand === brand);
+
+            let filtered;
+            if (tokens.length === 0) {
+                filtered = inBrand;
+            } else {
+                const phraseMatches = inBrand.filter(c => c._compact.includes(compactQuery));
+                // Only loosen to independent, typo-tolerant token matching when the
+                // exact phrase draws a blank (e.g. real typos, or genuinely separate
+                // search terms like "phantom 4k").
+                filtered = phraseMatches.length > 0
+                    ? phraseMatches
+                    : inBrand.filter(c => tokens.every(t => tokenMatches(t, c)));
+            }
 
             countDisplay.innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> DB: ${filtered.length} MODELS`;
 
