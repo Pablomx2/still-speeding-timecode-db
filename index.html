@@ -529,63 +529,69 @@
         }
 
         // Relevance tiers, highest first, so results can be sorted by match quality
-        // instead of just included/excluded.
-        const SCORE = { EXACT: 100, PREFIX: 80, SUBSTRING: 60, TYPO: 40, CONTAINS: 20 };
+        // — and so a query with a confident (exact/prefix) hit can suppress purely
+        // coincidental typo/loose-letter matches instead of just out-ranking them.
+        const TIER = { EXACT: 4, PREFIX: 3, SUBSTRING: 2, TYPO: 1, CONTAINS: 0 };
+        const TIER_SCORE = [20, 40, 60, 80, 100]; // indexed by tier
 
         // Scores how well a single search token matches a single normalized word
         // (or synthetic word-pair, see _bigrams below). `allowFuzzy` gates the
         // typo/contains tiers off for bigrams, which are already a loose construct.
-        function wordScore(token, word, allowFuzzy) {
-            if (token === word) return SCORE.EXACT;
+        // Returns null for no match, else { tier, score }.
+        function wordMatch(token, word, allowFuzzy) {
+            if (token === word) return { tier: TIER.EXACT, score: TIER_SCORE[TIER.EXACT] };
             // Guard both sides' length so a throwaway single-letter word (e.g. the
             // "L" in "fp / fp L") can't count as a "prefix" of every token that
             // happens to start with that letter.
             if (token.length >= 2 && word.length >= 2) {
-                if (word.startsWith(token) || token.startsWith(word)) return SCORE.PREFIX;
-                if (word.includes(token)) return SCORE.SUBSTRING;
+                if (word.startsWith(token) || token.startsWith(word)) return { tier: TIER.PREFIX, score: TIER_SCORE[TIER.PREFIX] };
+                if (word.includes(token)) return { tier: TIER.SUBSTRING, score: TIER_SCORE[TIER.SUBSTRING] };
             }
-            if (!allowFuzzy || token.length < 3) return 0;
+            if (!allowFuzzy || token.length < 3) return null;
             // Digit-bearing terms (pin counts, "3.5mm", etc.) are exact specs, not
             // typo-tolerant text — "5-pin" must never fuzzy-match "9-pin" just
             // because deleting one digit is a single cheap edit.
-            if (onlyDigits(token) !== onlyDigits(word)) return 0;
+            if (onlyDigits(token) !== onlyDigits(word)) return null;
             const budget = typoBudget(token.length);
             if (budget > 0 && Math.abs(word.length - token.length) <= budget) {
                 const dist = editDistance(token, word);
-                if (dist <= budget) return SCORE.TYPO - dist * 5;
+                if (dist <= budget) return { tier: TIER.TYPO, score: TIER_SCORE[TIER.TYPO] - dist * 5 };
             }
             if (Math.abs(word.length - token.length) <= 2 && charsContained(token, word)) {
-                return SCORE.CONTAINS;
+                return { tier: TIER.CONTAINS, score: TIER_SCORE[TIER.CONTAINS] };
             }
-            return 0;
+            return null;
         }
 
-        // Best score for one token against everything in a camera: its individual
+        // Best match for one token against everything in a camera: its individual
         // words, plus adjacent word-pairs (so "5-pin", split into "5" + "pin", still
         // matches a compact "5pin" query).
-        function tokenScore(token, camera) {
-            let best = 0;
+        function tokenMatch(token, camera) {
+            let best = null;
             for (const word of camera._words) {
-                const s = wordScore(token, word, true);
-                if (s > best) best = s;
+                const m = wordMatch(token, word, true);
+                if (m && (!best || m.score > best.score)) best = m;
             }
             for (const bigram of camera._bigrams) {
-                const s = wordScore(token, bigram, false);
-                if (s > best) best = s;
+                const m = wordMatch(token, bigram, false);
+                if (m && (!best || m.score > best.score)) best = m;
             }
             return best;
         }
 
-        // Every token must match something (AND across tokens); total score sums
-        // the best per-token tier so tighter, more-tokens-matched results rank higher.
-        function queryScore(tokens, camera) {
-            let total = 0;
+        // Every token must match something (AND across tokens). Total score sums
+        // the best per-token tier so tighter, more-tokens-matched results rank
+        // higher; overall tier is the weakest link across tokens, since that's
+        // the least-confident part of the match.
+        function queryMatch(tokens, camera) {
+            let score = 0, tier = Infinity;
             for (const t of tokens) {
-                const s = tokenScore(t, camera);
-                if (s === 0) return 0;
-                total += s;
+                const m = tokenMatch(t, camera);
+                if (!m) return null;
+                score += m.score;
+                if (m.tier < tier) tier = m.tier;
             }
-            return total;
+            return { score, tier };
         }
 
         cameraData.forEach(c => {
@@ -1126,15 +1132,23 @@
             if (tokens.length === 0) {
                 filtered = inBrand;
             } else {
-                // Score every camera independently (exact/prefix/substring beat
-                // typo-tolerant and loose "contains these letters" matches) and sort
-                // best-first, rather than an all-or-nothing include/exclude — so a
-                // typo like "ari" still surfaces Arri even if some unrelated model
-                // happens to satisfy a looser rule elsewhere.
-                filtered = inBrand
-                    .map(c => ({ c, score: queryScore(tokens, c) }))
-                    .filter(x => x.score > 0)
-                    .sort((a, b) => b.score - a.score)
+                // Match every camera independently (exact/prefix/substring beat
+                // typo-tolerant and loose "contains these letters" matches) rather
+                // than an all-or-nothing include/exclude — so a typo like "ari"
+                // still surfaces Arri even if some unrelated model happens to
+                // satisfy a looser rule elsewhere.
+                const matches = inBrand
+                    .map(c => ({ c, m: queryMatch(tokens, c) }))
+                    .filter(x => x.m);
+                const bestTier = matches.reduce((best, x) => Math.max(best, x.m.tier), -1);
+                // But once a confident (exact/prefix) match exists, a typo/loose
+                // match is almost certainly coincidental noise rather than what the
+                // user meant — e.g. searching "varicam" or "fx6" shouldn't also
+                // surface unrelated cameras that just share a few letters.
+                const minTier = bestTier >= TIER.PREFIX ? TIER.SUBSTRING : -1;
+                filtered = matches
+                    .filter(x => x.m.tier >= minTier)
+                    .sort((a, b) => b.m.score - a.m.score)
                     .map(x => x.c);
             }
 
