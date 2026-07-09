@@ -542,9 +542,15 @@
             if (token === word) return { tier: TIER.EXACT, score: TIER_SCORE[TIER.EXACT] };
             // Guard both sides' length so a throwaway single-letter word (e.g. the
             // "L" in "fp / fp L") can't count as a "prefix" of every token that
-            // happens to start with that letter.
+            // happens to start with that letter. The token-starts-with-word
+            // direction additionally needs a 3+ char word — short alphanumeric
+            // model codes ("F3", "F6"...) are common in this data and would
+            // otherwise "prefix-match" (and so outrank/suppress) an unrelated
+            // typo'd model that happens to share those two leading characters,
+            // e.g. "f6x" wrongly out-scoring the Sony FX6 it was meant for
+            // because Z Cam's "E2-F6" contributes a bare "f6" word.
             if (token.length >= 2 && word.length >= 2) {
-                if (word.startsWith(token) || token.startsWith(word)) return { tier: TIER.PREFIX, score: TIER_SCORE[TIER.PREFIX] };
+                if (word.startsWith(token) || (word.length >= 3 && token.startsWith(word))) return { tier: TIER.PREFIX, score: TIER_SCORE[TIER.PREFIX] };
                 if (word.includes(token)) return { tier: TIER.SUBSTRING, score: TIER_SCORE[TIER.SUBSTRING] };
             }
             if (!allowFuzzy || token.length < 3) return null;
