@@ -89,7 +89,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-end mb-8 gap-4">
             <div>
                 <h2 class="text-3xl font-bold text-white tracking-tight">Camera Catalog</h2>
-                <p class="text-zinc-400 mt-1">Verified audio & timecode hardware configurations.</p>
+                <p class="text-zinc-400 mt-1">Verified audio & timecode hardware configurations. <span id="verifiedNote" class="text-zinc-600"></span></p>
             </div>
             <div class="flex items-center gap-3">
                 <div id="statsCounter" class="bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-full text-zinc-300 text-xs font-bold mono uppercase flex items-center gap-2">
@@ -139,6 +139,27 @@
                 </div>
             </div>
 
+            <!-- Production details: printed in the PDF header -->
+            <div class="px-6 py-4 border-b border-zinc-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="flex flex-col gap-1">
+                    <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Production</span>
+                    <input id="planProject" type="text" placeholder="Project name" class="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 outline-none focus:border-zinc-500">
+                </label>
+                <label class="flex flex-col gap-1">
+                    <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Prepared By</span>
+                    <input id="planMixer" type="text" placeholder="Sound mixer / DIT" class="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 outline-none focus:border-zinc-500">
+                </label>
+                <label class="flex flex-col gap-1">
+                    <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Project Frame Rate</span>
+                    <select id="planFps" class="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white outline-none cursor-pointer focus:border-zinc-500">
+                        <option value="">Not set</option>
+                        <option>23.98</option><option>24</option><option>25</option>
+                        <option>29.97</option><option>29.97 DF</option><option>30</option>
+                        <option>48</option><option>50</option><option>59.94</option><option>60</option>
+                    </select>
+                </label>
+            </div>
+
             <div class="flex flex-col md:flex-row max-h-[60vh] overflow-y-auto">
                 <div class="p-6 w-full md:w-1/2 border-b md:border-b-0 md:border-r border-zinc-800">
                     <h4 class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4">Selected Cameras</h4>
@@ -170,15 +191,15 @@
             { id: 3, brand: "Arri", model: "Alexa Mini", tc: "5-pin LEMO", audio: "(1x) 5-pin LEMO" },
             { id: 4, brand: "Arri", model: "Alexa Mini LF", tc: "5-pin LEMO", audio: "(1x) 6-pin LEMO" },
             { id: 5, brand: "Arri", model: "Amira", tc: "BNC", audio: "(1x) 5-pin XLR; (2x) 3-pin XLR (+48V)" },
-            { id: 6, brand: "Arri", model: "Alexa 35", tc: "5-pin LEMO", audio: "(3x) 3-pin Mini XLR (+48V); (1x) 6-pin LEMO" },
+            { id: 6, brand: "Arri", model: "Alexa 35", tc: "5-pin LEMO", audio: "(1x) 6-pin LEMO (Line); (3x) Mini XLR via AEM-1 module (2x +48V Mic/Line, 1x AES)" },
             { id: 7, brand: "Arri", model: "Alexa SXT", tc: "5-pin LEMO", audio: "(1x) 5-pin XLR" },
             { id: 8, brand: "Blackmagic", model: "Other Models", tc: "None", audio: "(2x) ¼\" Jack" },
             { id: 9, brand: "Blackmagic", model: "4K URSA", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
-            { id: 10, brand: "Blackmagic", model: "Pocket 6K Pro", tc: "3.5mm Mic Jack", audio: "(2x) 3-pin Mini XLR (+48V); (1x) 3.5mm Mic" },
+            { id: 10, brand: "Blackmagic", model: "Pocket 6K Pro", tc: "Audio Inputs (3.5mm / Mini XLR)", audio: "(2x) 3-pin Mini XLR (+48V); (1x) 3.5mm Mic" },
             { id: 11, brand: "Blackmagic", model: "Studio 4K Plus", tc: "None", audio: "(1x) 3.5mm TRS Stereo" },
             { id: 12, brand: "Blackmagic", model: "Studio 4K Pro", tc: "None", audio: "(2x) 3-pin XLR (+48V); (1x) 3.5mm TRS" },
             { id: 13, brand: "Blackmagic", model: "URSA Mini Pro", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
-            { id: 14, brand: "Blackmagic", model: "Pocket 6K G2", tc: "Auto (All Audio Inputs)", audio: "(2x) 3-pin Mini XLR (+48V); 3.5mm TRS" },
+            { id: 14, brand: "Blackmagic", model: "Pocket 6K G2", tc: "Audio Inputs (3.5mm / Mini XLR)", audio: "(2x) 3-pin Mini XLR (+48V); 3.5mm TRS" },
             { id: 15, brand: "Blackmagic", model: "PYXIS 6K/12K", tc: "BNC", audio: "(1x) 3-pin Mini XLR (+48V); 3.5mm TRS" },
             { id: 16, brand: "Canon", model: "1D X Mark III", tc: "None", audio: "(1x) 3.5mm TRS Stereo" },
             { id: 17, brand: "Canon", model: "5D/7D", tc: "None", audio: "(1x) 3.5mm TRS Stereo" },
@@ -188,7 +209,7 @@
             { id: 21, brand: "Canon", model: "C500", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 22, brand: "Canon", model: "C70", tc: "BNC", audio: "(2x) 3-pin Mini XLR (+48V); 3.5mm TRS" },
             { id: 23, brand: "Canon", model: "R5C", tc: "DIN 1.0/2.3", audio: "(1x) 3.5mm TRS Stereo" },
-            { id: 24, brand: "Canon", model: "C400", tc: "DIN 1.0/2.3", audio: "(2x) 3-pin Mini XLR (+48V)" },
+            { id: 24, brand: "Canon", model: "C400", tc: "DIN 1.0/2.3", audio: "(2x) 3-pin Mini XLR (+48V); 3.5mm TRS" },
             { id: 25, brand: "Canon", model: "C50", tc: "DIN 1.0/2.3", audio: "(2x) 3-pin XLR (+48V); 3.5mm TRS" },
             { id: 26, brand: "Canon", model: "C80", tc: "BNC", audio: "(2x) 3-pin Mini XLR (+48V); 3.5mm TRS" },
             { id: 27, brand: "Canon", model: "EOS R1", tc: "None (LTC via Audio)", audio: "3.5mm TRS Stereo" },
@@ -199,24 +220,24 @@
             { id: 32, brand: "Canon", model: "XA40", tc: "None", audio: "(2x) 3-pin XLR (+48V); 3.5mm TRS" },
             { id: 33, brand: "Canon", model: "XF100/200/300", tc: "None", audio: "(2x) 3-pin XLR (+48V); 3.5mm TRS" },
             { id: 34, brand: "Canon", model: "XF105/205/305/605/705", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
-            { id: 35, brand: "DJI", model: "Ronin 4D 6K/8K", tc: "3.5mm Mic Jack", audio: "(2x) 3-pin XLR (+48V); 3.5mm TRS" },
-            { id: 36, brand: "DJI", model: "Osmo Pocket 3", tc: "USB-C", audio: "No external input" },
-            { id: 37, brand: "DJI", model: "Osmo Action 4/5", tc: "USB-C", audio: "No external input" },
-            { id: 38, brand: "Fujifilm", model: "X-H2S", tc: "None", audio: "3.5mm TRS; (2x) Combo XLR/¼\"" },
+            { id: 35, brand: "DJI", model: "Ronin 4D 6K/8K", tc: "BNC (Expansion Plate) / 3.5mm Mic (Audio TC)", audio: "(2x) 3-pin XLR (+48V) via Expansion Plate; 3.5mm TRS" },
+            { id: 36, brand: "DJI", model: "Osmo Pocket 3", tc: "USB-C", audio: "DJI Mic (OsmoAudio wireless) / USB-C" },
+            { id: 37, brand: "DJI", model: "Osmo Action 4/5", tc: "USB-C / 3.5mm (via adapter)", audio: "3.5mm (via USB-C adapter) / DJI Mic (OsmoAudio)" },
+            { id: 38, brand: "Fujifilm", model: "X-H2S", tc: "Wireless ATOMOS AirGlu", audio: "3.5mm TRS; (2x) Combo XLR/¼\" via TASCAM CA-XLR2d" },
             { id: 39, brand: "Fujifilm", model: "GFX100 II", tc: "Wireless ATOMOS AirGlu", audio: "3.5mm TRS Stereo" },
             { id: 40, brand: "Fujifilm", model: "X-T50", tc: "None", audio: "3.5mm TRS Stereo" },
-            { id: 41, brand: "Fujifilm", model: "GFX ETERNA 55", tc: "BNC", audio: "3.5mm TRS; (2x) 3-pin XLR (+48V)" },
+            { id: 41, brand: "Fujifilm", model: "GFX ETERNA 55", tc: "BNC In/Out / ATOMOS AirGlu", audio: "3.5mm TRS; (2x) XLR via TASCAM CA-XLR2d" },
             { id: 42, brand: "Kinefinity", model: "MAVO Edge 6K/8K", tc: "5-pin LEMO", audio: "(2x) 3-pin XLR (+48V); 3.5mm TRS" },
             { id: 43, brand: "Nikon", model: "ZR", tc: "Wireless ATOMOS AirGlu", audio: "3.5mm TRS Stereo" },
-            { id: 44, brand: "Panasonic", model: "AG-AF100A", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
+            { id: 44, brand: "Panasonic", model: "AG-AF100A", tc: "None (menu jam via Video Out)", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 45, brand: "Panasonic", model: "HDX900", tc: "BNC", audio: "(2x) 3-pin XLR (+48V); 5-pin XLR" },
-            { id: 46, brand: "Panasonic", model: "DC-GH5s", tc: "Flash Sync / BNC (w/ cable)", audio: "(2x) 3-pin XLR (+48V); 3.5mm TRS" },
+            { id: 46, brand: "Panasonic", model: "DC-GH5s", tc: "Flash Synchro (BNC cable supplied)", audio: "3.5mm TRS; (2x) 3-pin XLR (+48V via DMW-XLR1)" },
             { id: 47, brand: "Panasonic", model: "AG-DVX200", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 48, brand: "Panasonic", model: "AU-EVA1", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 49, brand: "Panasonic", model: "Varicam LT", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 50, brand: "Panasonic", model: "Lumix BS1H", tc: "BNC", audio: "3.5mm TRS Stereo" },
             { id: 51, brand: "Panasonic", model: "LUMIX G9II", tc: "None", audio: "3.5mm TRS Stereo" },
-            { id: 52, brand: "Panasonic", model: "LUMIX GH7", tc: "Flash Synchro", audio: "3.5mm TRS; (2x) 3-pin XLR (+48V)" },
+            { id: 52, brand: "Panasonic", model: "LUMIX GH7", tc: "Flash Synchro (BNC cable supplied)", audio: "3.5mm TRS; (2x) 3-pin XLR (+48V via DMW-XLR1/XLR2)" },
             { id: 53, brand: "Panavision", model: "Millennium DXL/DXL2", tc: "5-pin LEMO", audio: "Optional wireless block" },
             { id: 54, brand: "RED", model: "DRAGON", tc: "4-pin LEMO", audio: "(2x) 3.5mm TRS Stereo" },
             { id: 55, brand: "RED", model: "EPIC", tc: "4-pin LEMO", audio: "(1x) 3.5mm TRS Stereo" },
@@ -225,16 +246,16 @@
             { id: 58, brand: "RED", model: "Ranger", tc: "5-pin LEMO", audio: "(1x) 5-pin XLR" },
             { id: 59, brand: "RED", model: "Scarlet", tc: "4-pin LEMO", audio: "(1x) 3.5mm TRS" },
             { id: 60, brand: "RED", model: "WEAPON", tc: "4-pin LEMO", audio: "(1x) 3.5mm TRS" },
-            { id: 61, brand: "RED", model: "Komodo 6K", tc: "9-pin Lemo", audio: "(1x) 3.5mm TRS Stereo" },
-            { id: 62, brand: "RED", model: "V-Raptor", tc: "9-Pin LEMO", audio: "(1x) 5-Pin LEMO 00" },
+            { id: 61, brand: "RED", model: "Komodo 6K", tc: "9-pin EXT LEMO (via adapter)", audio: "(1x) 3.5mm TRS Stereo" },
+            { id: 62, brand: "RED", model: "V-Raptor", tc: "9-pin EXT LEMO (via adapter)", audio: "(1x) 5-pin 00B LEMO (+48V)" },
             { id: 63, brand: "RED", model: "Helium", tc: "4-pin LEMO (w/ expander)", audio: "3.5mm TRS (w/ expander)" },
-            { id: 64, brand: "Sony", model: "A7S III / A1", tc: "MicroUSB (via Adapter)", audio: "3.5mm TRS Stereo" },
+            { id: 64, brand: "Sony", model: "A7S III / A1", tc: "Multi/Micro USB (VMC-BNCM1)", audio: "3.5mm TRS Stereo" },
             { id: 65, brand: "Sony", model: "A7S II / A7 III", tc: "None (LTC via Audio)", audio: "3.5mm TRS Stereo" },
             { id: 66, brand: "Sony", model: "F23 / F35", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 67, brand: "Sony", model: "F55 / F5", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 68, brand: "Sony", model: "F65", tc: "BNC", audio: "None" },
-            { id: 69, brand: "Sony", model: "FS7 / FS700", tc: "BNC / None", audio: "(2x) 3-pin XLR (+48V)" },
-            { id: 70, brand: "Sony", model: "FX3 / FX30", tc: "MicroUSB", audio: "Combo XLR / 3.5mm TRS" },
+            { id: 69, brand: "Sony", model: "FS7 / FS700", tc: "BNC (FS7) / None (FS700)", audio: "(2x) 3-pin XLR (+48V)" },
+            { id: 70, brand: "Sony", model: "FX3 / FX30", tc: "Multi/Micro USB (VMC-BNCM1)", audio: "3.5mm TRS; (2x) Combo XLR/TRS via XLR-H1 handle" },
             { id: 71, brand: "Sony", model: "FX6", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 72, brand: "Sony", model: "FX9", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 73, brand: "Sony", model: "HDC 2500L", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
@@ -242,29 +263,28 @@
             { id: 75, brand: "Sony", model: "Venice", tc: "BNC", audio: "(1x) 5-pin XLR" },
             { id: 76, brand: "Sony", model: "Venice 2", tc: "BNC In & Out", audio: "(1x) 5-pin XLR" },
             { id: 77, brand: "Sony", model: "Burano", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
-            { id: 78, brand: "Sony", model: "FR7", tc: "BNC", audio: "5-pin XLR" },
-            { id: 79, brand: "Sony", model: "A9iii", tc: "None", audio: "3.5mm TRS Stereo" },
-            { id: 80, brand: "Sony", model: "FX2", tc: "MicroUSB", audio: "3.5mm TRS; (2x) 3-pin XLR" },
+            { id: 78, brand: "Sony", model: "FR7", tc: "BNC", audio: "(1x) 5-pin XLR (+48V)" },
+            { id: 79, brand: "Sony", model: "A9iii", tc: "Multi/Micro USB (VMC-BNCM1)", audio: "3.5mm TRS Stereo" },
+            { id: 80, brand: "Sony", model: "FX2", tc: "Multi/Micro USB (VMC-BNCM1)", audio: "3.5mm TRS; (2x) Combo XLR/TRS via XLR-H1 handle" },
             { id: 81, brand: "Z Cam", model: "E2", tc: "Adapter to BNC", audio: "5-pin LEMO" },
             { id: 82, brand: "BirdDog", model: "Eyes P200", tc: "None", audio: "3.5mm TRS LINE" },
-            { id: 83, brand: "RED", model: "Komodo-X", tc: "5-Pin LEMO", audio: "(1x) 5-Pin LEMO (+48V via adapter)" },
-            { id: 84, brand: "RED", model: "V-Raptor XL", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
+            { id: 83, brand: "RED", model: "Komodo-X", tc: "9-pin EXT LEMO (via adapter) / 5-pin LEMO on Pro I/O", audio: "(1x) 5-pin 00B LEMO (+48V)" },
+            { id: 84, brand: "RED", model: "V-Raptor XL", tc: "5-pin LEMO", audio: "(1x) 5-pin 00B LEMO (+48V); XLR via adapter" },
             { id: 85, brand: "Blackmagic", model: "URSA Cine 12K / 17K", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
-            { id: 86, brand: "Blackmagic", model: "Cinema Camera 6K (FF)", tc: "3.5mm Mic Jack", audio: "(2x) 3-pin Mini XLR (+48V); (1x) 3.5mm Mic" },
-            { id: 87, brand: "Blackmagic", model: "Pocket 4K", tc: "3.5mm Mic Jack", audio: "(1x) 3-pin Mini XLR (+48V); (1x) 3.5mm Mic" },
+            { id: 86, brand: "Blackmagic", model: "Cinema Camera 6K (FF)", tc: "Audio Inputs (3.5mm / Mini XLR)", audio: "(2x) 3-pin Mini XLR (+48V); (1x) 3.5mm Mic" },
+            { id: 87, brand: "Blackmagic", model: "Pocket 4K", tc: "Audio Inputs (3.5mm / Mini XLR)", audio: "(1x) 3-pin Mini XLR (+48V); (1x) 3.5mm Mic" },
             { id: 88, brand: "Canon", model: "C300 Mark II / III", tc: "BNC", audio: "(2x) 3-pin XLR (+48V); (1x) 3.5mm Mic" },
             { id: 89, brand: "Canon", model: "C500 Mark II", tc: "BNC", audio: "(2x) 3-pin XLR (+48V); (1x) 3.5mm Mic" },
             { id: 90, brand: "Panasonic", model: "Varicam 35 / Pure", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
-            { id: 91, brand: "Panasonic", model: "LUMIX S1H", tc: "BNC (via Flash Sync)", audio: "(1x) 3.5mm TRS Stereo" },
+            { id: 91, brand: "Panasonic", model: "LUMIX S1H", tc: "Flash Synchro (BNC cable supplied)", audio: "(1x) 3.5mm TRS Stereo" },
             { id: 92, brand: "Panasonic", model: "LUMIX S5II / S5IIX", tc: "None (LTC via Audio)", audio: "(1x) 3.5mm TRS Stereo" },
             { id: 93, brand: "Sony", model: "PXW-Z280 / Z190", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 94, brand: "Sony", model: "A7 IV / A7R V", tc: "None (LTC via Audio)", audio: "(1x) 3.5mm TRS Stereo" },
-            { id: 95, brand: "Sony", model: "HDC-3500", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 96, brand: "Sigma", model: "fp / fp L", tc: "None (LTC via Audio)", audio: "(1x) 3.5mm TRS Stereo" },
             { id: 97, brand: "Freefly", model: "Ember S5K", tc: "None", audio: "No external input" },
             { id: 98, brand: "DJI", model: "Inspire 3", tc: "3.5mm (via Remote)", audio: "3.5mm TRS on Remote" },
-            { id: 99, brand: "Nikon", model: "Z9 / Z8", tc: "ATOMOS AirGlu", audio: "(1x) 3.5mm TRS Stereo" },
-            { id: 100, brand: "Nikon", model: "Z6 III", tc: "None (LTC via Audio)", audio: "(1x) 3.5mm TRS Stereo" },
+            { id: 99, brand: "Nikon", model: "Z9 / Z8", tc: "Wireless ATOMOS AirGlu", audio: "(1x) 3.5mm TRS Stereo" },
+            { id: 100, brand: "Nikon", model: "Z6 III", tc: "Wireless ATOMOS AirGlu", audio: "(1x) 3.5mm TRS Stereo" },
             { id: 101, brand: "GoPro", model: "HERO 12 / 13 Black", tc: "QR Code / BT", audio: "Media Mod / 3.5mm Adapter" },
             { id: 102, brand: "Arri", model: "Alexa 65", tc: "5-pin LEMO", audio: "(1x) 5-pin XLR" },
 
@@ -274,7 +294,7 @@
             { id: 104, brand: "Arri", model: "Alexa XT / Plus / Studio", tc: "5-pin LEMO", audio: "(1x) 5-pin XLR" },
             { id: 105, brand: "Arri", model: "Alexa Classic / EV", tc: "5-pin LEMO", audio: "(1x) 5-pin XLR" },
             // RED
-            { id: 106, brand: "RED", model: "V-Raptor [X] / Raptor [X]", tc: "9-Pin LEMO", audio: "(1x) 5-Pin LEMO 00 (+48V)" },
+            { id: 106, brand: "RED", model: "V-Raptor [X] / Raptor [X]", tc: "9-pin EXT LEMO (via adapter)", audio: "(1x) 5-pin 00B LEMO (+48V)" },
             { id: 107, brand: "RED", model: "Monstro 8K VV (DSMC2)", tc: "5-pin LEMO (w/ expander)", audio: "(1x) 3.5mm TRS (w/ expander)" },
             // Sony
             { id: 108, brand: "Sony", model: "PMW-F3", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
@@ -287,9 +307,9 @@
             // Canon
             { id: 115, brand: "Canon", model: "EOS R5", tc: "None (LTC via Audio)", audio: "3.5mm TRS Stereo" },
             { id: 116, brand: "Canon", model: "1D C", tc: "None", audio: "3.5mm TRS Stereo" },
-            { id: 117, brand: "Canon", model: "ME20F-SH", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
+            { id: 117, brand: "Canon", model: "ME20F-SH", tc: "None (Genlock BNC only)", audio: "(1x) 3.5mm TRS Stereo" },
             // Panasonic
-            { id: 118, brand: "Panasonic", model: "LUMIX GH6", tc: "Flash Synchro", audio: "3.5mm TRS; (2x) 3-pin XLR (+48V via DMW-XLR1)" },
+            { id: 118, brand: "Panasonic", model: "LUMIX GH6", tc: "Flash Synchro (BNC cable supplied)", audio: "3.5mm TRS; (2x) 3-pin XLR (+48V via DMW-XLR1)" },
             { id: 119, brand: "Panasonic", model: "LUMIX S1 / S1R", tc: "None (LTC via Audio)", audio: "3.5mm TRS Stereo" },
             { id: 120, brand: "Panasonic", model: "AG-CX350 / CX10", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             // Blackmagic
@@ -297,7 +317,7 @@
             { id: 122, brand: "Blackmagic", model: "URSA Broadcast G2", tc: "BNC", audio: "(2x) 3-pin XLR (+48V)" },
             { id: 123, brand: "Blackmagic", model: "Micro Studio 4K G2", tc: "None", audio: "(1x) 3.5mm TRS" },
             // Fujifilm
-            { id: 124, brand: "Fujifilm", model: "X-H2", tc: "None", audio: "3.5mm TRS; (2x) Combo XLR/¼\" via adapter" },
+            { id: 124, brand: "Fujifilm", model: "X-H2", tc: "Wireless ATOMOS AirGlu", audio: "3.5mm TRS; (2x) Combo XLR/¼\" via TASCAM CA-XLR2d" },
             { id: 125, brand: "Fujifilm", model: "X-T5 / X-T4", tc: "None", audio: "3.5mm TRS Stereo" },
             // Nikon
             { id: 126, brand: "Nikon", model: "Z6 II / Z7 II", tc: "None (LTC via Audio)", audio: "3.5mm TRS Stereo" },
@@ -317,7 +337,12 @@
             { id: 134, brand: "DJI", model: "Mavic 3 Pro Cine", tc: "None", audio: "No external input" },
             // Insta360
             { id: 135, brand: "Insta360", model: "X4 / X5", tc: "USB-C / BT", audio: "3.5mm TRS (via adapter)" },
-            { id: 136, brand: "Insta360", model: "Ace Pro 2", tc: "USB-C / BT", audio: "3.5mm TRS (via adapter)" }
+            { id: 136, brand: "Insta360", model: "Ace Pro 2", tc: "USB-C / BT", audio: "3.5mm TRS (via adapter)" },
+
+            // ----- 2025–2026 additions -----
+            { id: 137, brand: "Sony", model: "FX5", tc: "USB-C (VMC-BNCU1)", audio: "3.5mm TRS; (2x) Combo XLR/TRS via XLR-H2 handle" },
+            { id: 138, brand: "GoPro", model: "MISSION 1 / MISSION 1 PRO", tc: "3.5mm (LTC In)", audio: "(1x) 3.5mm Mic/Line; BT / USB-C" },
+            { id: 139, brand: "Panasonic", model: "LUMIX S1II", tc: "Wireless ATOMOS AirGlu", audio: "3.5mm TRS; (2x) 3-pin XLR (+48V via DMW-XLR2)" }
         ];
 
         // ------------------------------------------------------------------
@@ -339,7 +364,7 @@
             12:  { fps: "25 · 29.97 · 30 · 50 · 59.94 · 60" },
             13:  { fps: "23.98 · 24 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · up to 300fps (G2)" },
             14:  { fps: "23.98 · 24 · 25 · 29.97 · 30 · 48 · 50 · 59.94 · 60 · 120" },
-            15:  { fps: "23.98 · 24 · 25 · 29.97 · 30 · 48 · 50 · 59.94 · 60 · 120" },
+            15:  { fps: "23.98 · 24 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · up to 120fps (off-speed)" },
             16:  { fps: "23.98 · 25 · 29.97 · 50 · 59.94 · 120", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
             17:  { fps: "23.98 · 25 · 29.97 · 50 · 59.94", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
             18:  { fps: "23.98 · 24 · 25 · 29.97 · 30 · 50 · 59.94 · 60" },
@@ -419,7 +444,6 @@
             92:  { fps: "23.98 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · 120", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
             93:  { fps: "23.98 · 24 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · 120" },
             94:  { fps: "23.98 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · 120", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
-            95:  { fps: "23.98 · 25 · 29.97 · 50 · 59.94" },
             96:  { fps: "23.98 · 25 · 29.97 · 30 · 50 · 59.94 · 60", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
             97:  { fps: "23.98 · 24 · 25 · 29.97 · 30 · up to 300fps" },
             98:  { fps: "23.98 · 24 · 25 · 29.97 · 30 · 48 · 50 · 59.94 · 60 · 120" },
@@ -456,11 +480,14 @@
             129: { fps: "23.98 · 24 · 25 · 29.97 · up to 2564fps at 2.5K" },
             130: { fps: "23.98 · 24 · 25 · 29.97 · 30 · 48 · 50 · 59.94 · 60" },
             131: { fps: "23.98 · 25 · 29.97 · 50 · 59.94" },
-            132: { fps: "23.98 · 24 · 25 · 29.97 · 30 · 48 · 50 · 59.94 · 60 · up to 120fps" },
+            132: { fps: "23.98 · 24 · 25 · 29.97 · 30 · 48 · 50 · 59.94 · 60 · up to 75fps at 6K" },
             133: { fps: "23.98 · 24 · 25 · 29.97 · 30 · 48 · 50 · 59.94 · 60 · 120" },
             134: { fps: "23.98 · 25 · 29.97 · 30 · 48 · 50 · 59.94 · 60 · 120", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
             135: { fps: "23.98 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · 120", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
             136: { fps: "23.98 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · 240", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
+            137: { fps: "23.98 · 24 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · 120" },
+            138: { fps: "23.98 · 25 · 29.97 · 50 · 59.94 · up to 240fps (4K)", fpsNote: "Menu shows '24p' — actual rate is 23.976 (24000/1001)" },
+            139: { fps: "23.98 · 24 · 25 · 29.97 · 30 · 50 · 59.94 · 60 · 120" },
         };
         const getFps = id => fpsData[id] || { fps: "—" };
 
@@ -683,6 +710,44 @@
         const TC_DEFAULT = { run: "Free Run", sync: "External / Audio LTC", regen: "Preset / Jam", note: "Standard dual-system setup: Jam to external source, set to Free Run." };
         const getTCSettings = brand => TC_SETTINGS[brand] || TC_DEFAULT;
 
+        // When the connector/frame-rate data was last re-checked against
+        // manufacturer specs. Shown in the catalog header and on the PDF.
+        const DATA_VERIFIED = "October 2026";
+        document.getElementById("verifiedNote").textContent = `Last checked ${DATA_VERIFIED}.`;
+
+        // Suggested sync cable for a camera's TC input, keyed off the connector
+        // named in its `tc` string. First match wins, so the specific cases
+        // ("None (Genlock BNC only)", "Flash Synchro (BNC cable…)", Sony's
+        // VMC-BNC adapters) must come before the generic BNC rule.
+        // kind: wired | wireless | audio (LTC into an audio input) | none
+        const TC_CABLES = [
+            [/^none \(ltc via audio\)/i, "3.5mm → 3.5mm LTC cable (uses an audio input)", "audio"],
+            [/^none/i, "No TC input — sync in post (waveform / slate)", "none"],
+            [/vmc-bncu1/i, "Sony VMC-BNCU1 (USB-C) + BNC TC cable", "wired"],
+            [/vmc-bncm1/i, "Sony VMC-BNCM1 (Multi) + BNC TC cable", "wired"],
+            [/flash sync/i, "Flash-sync BNC adapter (supplied) + BNC TC cable", "wired"],
+            [/din 1\.0\/2\.3/i, "3.5mm → DIN 1.0/2.3 TC cable", "wired"],
+            [/9-pin/i, "3.5mm → RED 9-pin EXT TC cable", "wired"],
+            [/5-pin lemo/i, "3.5mm → 5-pin LEMO (0B) TC cable", "wired"],
+            [/4-pin lemo/i, "3.5mm → 4-pin LEMO TC cable", "wired"],
+            [/bnc/i, "3.5mm → BNC TC cable", "wired"],
+            [/airglu/i, "Atomos UltraSync BLUE (AirGlu BT) — wireless", "wireless"],
+            [/qr code/i, "GoPro Labs QR / Bluetooth sync — no cable", "wireless"],
+            [/usb-c/i, "3.5mm → USB-C TC cable", "wired"],
+            [/audio|mic|3\.5mm/i, "3.5mm → 3.5mm LTC cable (uses an audio input)", "audio"]
+        ];
+        function getTCCable(tc) {
+            const hit = TC_CABLES.find(([re]) => re.test(tc));
+            return hit ? { cable: hit[1], kind: hit[2] } : { cable: "Check manual", kind: "wired" };
+        }
+
+        // Standard project rates a TC box can be set to. Parsed out of each
+        // camera's fps string so the planner can find rates every camera shares.
+        const BASE_RATES = ["23.98", "24", "25", "29.97", "30", "47.95", "48", "50", "59.94", "60"];
+        const cameraRates = id => new Set(
+            getFps(id).fps.split("·").map(s => s.trim()).filter(s => BASE_RATES.includes(s))
+        );
+
         // ------------------------------------------------------------------
         // Toast notifications
         // ------------------------------------------------------------------
@@ -895,6 +960,7 @@
                         <span class="text-xs text-zinc-300 font-bold">${port}</span>
                         <span class="shrink-0 bg-zinc-800 border border-zinc-700 text-white text-[10px] font-bold px-2 py-1 rounded">×${total}</span>
                     </div>
+                    <div class="text-[10px] text-zinc-400 font-semibold mb-1">${getTCCable(port).cable}</div>
                     <div class="text-[10px] text-zinc-500 font-medium leading-relaxed">
                         ${usedBy}
                     </div>
@@ -1217,86 +1283,219 @@
         // ------------------------------------------------------------------
         // PDF Export
         // ------------------------------------------------------------------
-        function downloadRigPDF() {
-            if (selectedRig.length === 0) {
-                showToast("No cameras in rig plan.", "error");
-                return;
-            }
+        // Production details typed into the planner. Remembered per browser so
+        // a mixer doesn't retype them for every export; storage can be blocked
+        // (private windows), so every access is guarded.
+        const planFields = ["planProject", "planMixer", "planFps"].map(id => document.getElementById(id));
+        planFields.forEach(el => {
+            try { el.value = localStorage.getItem("ssdb:" + el.id) || ""; } catch (_) {}
+            el.addEventListener("input", () => {
+                try { localStorage.setItem("ssdb:" + el.id, el.value); } catch (_) {}
+            });
+        });
+
+        const escHtml = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+
+        function buildRigPDFHtml() {
+            const [project, mixer, projectFps] = planFields.map(el => el.value.trim());
             const totalUnits = selectedRig.reduce((sum, cam) => sum + (rigQty.get(cam.id) || 1), 0);
             const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
             const ports = generatePortSummary();
+            const camName = cam => `${cam.brand} ${cam.model}`;
 
-            const cameraRows = selectedRig.map(cam => {
+            // Rates every camera in the rig can actually shoot.
+            const rigRates = selectedRig.map(cam => cameraRates(cam.id));
+            const commonRates = BASE_RATES.filter(r => rigRates.every(set => set.has(r)));
+            const projectBase = projectFps.replace(/\s*DF$/, "");
+
+            const wiredUnits = selectedRig.reduce((sum, cam) => {
+                const kind = getTCCable(cam.tc).kind;
+                return sum + (kind === "wired" || kind === "audio" ? (rigQty.get(cam.id) || 1) : 0);
+            }, 0);
+
+            // ---- Pre-shoot warnings -------------------------------------
+            const warnings = [];
+            const listOf = cams => cams.map(c => escHtml(camName(c))).join(", ");
+            const byKind = kind => selectedRig.filter(c => getTCCable(c.tc).kind === kind);
+            if (projectBase) {
+                const unsupported = selectedRig.filter(c => !cameraRates(c.id).has(projectBase));
+                if (unsupported.length) warnings.push(`<strong>Project rate ${escHtml(projectFps)} not supported by:</strong> ${listOf(unsupported)}.`);
+            }
+            if (commonRates.length === 0) warnings.push(`<strong>No frame rate is shared by every camera.</strong> Split the rig or plan a conversion in post.`);
+            const pulldown = selectedRig.filter(c => getFps(c.id).fpsNote);
+            if (pulldown.length) warnings.push(`<strong>"24p" is really 23.976 on:</strong> ${listOf(pulldown)}. Run their TC boxes at 23.98, not 24.`);
+            const noTc = byKind("none");
+            if (noTc.length) warnings.push(`<strong>No timecode input:</strong> ${listOf(noTc)}. Slate every take or sync by waveform.`);
+            const audioTc = byKind("audio");
+            if (audioTc.length) warnings.push(`<strong>LTC uses an audio input on:</strong> ${listOf(audioTc)}. That channel can't carry production sound.`);
+            const wireless = byKind("wireless");
+            if (wireless.length) warnings.push(`<strong>Wireless sync:</strong> ${listOf(wireless)}. Pair and confirm lock before roll; re-check after battery swaps.`);
+
+            // ---- Tables -------------------------------------------------
+            const cameraRows = selectedRig.map((cam, i) => {
                 const qty = rigQty.get(cam.id) || 1;
+                const tc = getTCSettings(cam.brand);
+                const fps = getFps(cam.id);
                 return `<tr>
-                    <td>${cam.brand}</td>
-                    <td>${cam.model}</td>
-                    <td style="text-align:center">${qty}</td>
-                    <td>${cam.tc}</td>
-                    <td>${cam.audio}</td>
+                    <td class="num">${i + 1}</td>
+                    <td><div class="brand">${escHtml(cam.brand)}</div><div class="model">${escHtml(cam.model)}</div></td>
+                    <td class="c qty">${qty}</td>
+                    <td><strong>${escHtml(cam.tc)}</strong></td>
+                    <td>${escHtml(cam.audio)}</td>
+                    <td class="small">${escHtml(fps.fps)}${fps.fpsNote ? `<div class="flag">24p = 23.976</div>` : ""}</td>
+                    <td class="small">${escHtml(tc.run)}<br>${escHtml(tc.sync)} · ${escHtml(tc.regen)}</td>
                 </tr>`;
             }).join("");
 
-            const portRows = Object.entries(ports).sort(([a], [b]) => a.localeCompare(b)).map(([port, cameras]) => {
+            const cableRows = Object.entries(ports).sort(([a], [b]) => a.localeCompare(b)).map(([port, cameras]) => {
                 const total = cameras.reduce((s, c) => s + c.qty, 0);
-                const names = cameras.map(c => c.qty > 1 ? `${c.name} ×${c.qty}` : c.name).join(", ");
-                return `<tr><td><strong>${port}</strong></td><td style="text-align:center">×${total}</td><td>${names}</td></tr>`;
+                const { cable, kind } = getTCCable(port);
+                const names = cameras.map(c => c.qty > 1 ? `${escHtml(c.name)} ×${c.qty}` : escHtml(c.name)).join(", ");
+                return `<tr${kind === "none" ? ' class="muted"' : ""}>
+                    <td class="c"><span class="box"></span></td>
+                    <td><strong>${escHtml(port)}</strong></td>
+                    <td>${escHtml(cable)}</td>
+                    <td class="c qty">${kind === "none" ? "—" : total}</td>
+                    <td class="small">${names}</td>
+                </tr>`;
             }).join("");
 
-            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>Still Speeding LLC — Rig Plan</title>
+            // One jam-sync note per brand in the rig, not per camera.
+            const brands = [...new Set(selectedRig.map(c => c.brand))];
+            const noteRows = brands.map(b => {
+                const tc = getTCSettings(b);
+                return `<div class="note"><div class="note-brand">${escHtml(b)}</div><div>${escHtml(tc.note)}</div></div>`;
+            }).join("");
+
+            const meta = (label, value) => `<div class="meta-row"><span>${label}</span><strong>${value ? escHtml(value) : '<span class="blank"></span>'}</strong></div>`;
+
+            return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>${escHtml(project ? `${project} — Rig Plan` : "Still Speeding LLC — Rig Plan")}</title>
 <style>
-  @page { margin: 14mm 16mm; }
+  @page { size: landscape; margin: 12mm 12mm 14mm; }
+  @page { @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8px -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #888; } }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #111; background: #fff; }
-  .header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 2px solid #000; margin-bottom: 16px; }
-  .header h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-  .header .sub { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-top: 2px; }
-  .header .meta { text-align: right; font-size: 10px; color: #444; line-height: 1.6; }
-  .meta strong { font-size: 12px; color: #000; }
-  section { margin-bottom: 18px; }
-  h2 { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-bottom: 6px; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; font-size: 10px; color: #111; background: #fff; line-height: 1.4; }
+  .page { max-width: 1100px; margin: 0 auto; }
+  .toolbar { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 16px; margin-bottom: 20px; background: #111; color: #fff; font-size: 12px; }
+  .toolbar button { font: inherit; font-weight: 700; background: #fff; color: #000; border: 0; border-radius: 6px; padding: 7px 14px; cursor: pointer; }
+  @media print { .toolbar { display: none; } }
+  @media screen { body { padding: 0 16px 32px; background: #f4f4f5; } .page { background: #fff; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,.12); } }
+
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 12px; border-bottom: 2.5px solid #000; }
+  .brandmark { display: flex; align-items: center; gap: 10px; }
+  .logo { width: 34px; height: 34px; border-radius: 8px; background: #000; display: flex; align-items: center; justify-content: center; }
+  h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.1; }
+  .sub { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.6px; color: #666; margin-top: 3px; }
+  .meta { min-width: 260px; }
+  .meta-row { display: flex; justify-content: space-between; gap: 16px; padding: 2px 0; border-bottom: 1px solid #eee; font-size: 9.5px; }
+  .meta-row span { color: #777; text-transform: uppercase; letter-spacing: 0.8px; font-size: 8px; font-weight: 700; padding-top: 1px; }
+  .blank { display: inline-block; width: 140px; border-bottom: 1px solid #999; height: 11px; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0; }
+  .stat { border: 1px solid #ddd; border-radius: 6px; padding: 8px 10px; }
+  .stat .k { font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #777; }
+  .stat .v { font-size: 17px; font-weight: 800; margin-top: 2px; }
+  .stat .v.sm { font-size: 11px; font-weight: 700; line-height: 1.35; margin-top: 4px; }
+
+  .warn { border: 1px solid #e3b341; background: #fff8e6; border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; }
+  .warn h2 { color: #8a5a00; margin-bottom: 4px; }
+  .warn li { margin: 2px 0 2px 14px; }
+
+  section { margin-bottom: 16px; }
+  h2 { font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #444; margin-bottom: 6px; }
   table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #555; padding: 5px 8px; border-bottom: 1px solid #000; }
-  td { padding: 5px 8px; border-bottom: 1px solid #ddd; vertical-align: top; line-height: 1.4; }
-  tr:last-child td { border-bottom: none; }
-  .footer { margin-top: 24px; padding-top: 8px; border-top: 1px solid #ccc; font-size: 9px; color: #888; text-align: center; }
+  thead { display: table-header-group; }
+  tr { break-inside: avoid; }
+  th { text-align: left; font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #fff; background: #111; padding: 5px 7px; }
+  td { padding: 5px 7px; border-bottom: 1px solid #e4e4e4; vertical-align: top; }
+  tbody tr:nth-child(even) td { background: #fafafa; }
+  .c { text-align: center; }
+  .num { color: #999; width: 22px; }
+  .qty { font-weight: 800; font-size: 11px; }
+  .brand { font-size: 7.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #777; }
+  .model { font-weight: 700; font-size: 10.5px; }
+  .small { font-size: 8.5px; color: #444; }
+  .flag { display: inline-block; margin-top: 2px; font-size: 7.5px; font-weight: 700; color: #8a5a00; background: #fff1cc; border-radius: 3px; padding: 0 4px; }
+  .box { display: inline-block; width: 10px; height: 10px; border: 1.2px solid #000; border-radius: 2px; }
+  tr.muted td { color: #999; }
+
+  .notes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 14px; }
+  .note { border-left: 2px solid #000; padding: 2px 0 2px 8px; break-inside: avoid; }
+  .note-brand { font-weight: 800; font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+  .signoff { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 22px; break-inside: avoid; }
+  .signoff div { border-top: 1px solid #000; padding-top: 3px; font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #666; font-weight: 700; }
+  footer { margin-top: 16px; padding-top: 6px; border-top: 1px solid #ddd; font-size: 8px; color: #888; display: flex; justify-content: space-between; }
 </style>
 </head><body>
-<div class="header">
-  <div>
-    <h1>Still Speeding LLC</h1>
-    <div class="sub">Multi-Cam Rig Plan</div>
+<div class="toolbar"><span>Rig plan ready. In the print dialog, choose <strong>Save as PDF</strong>.</span><button onclick="window.print()">Save as PDF / Print</button></div>
+<div class="page">
+<header>
+  <div class="brandmark">
+    <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+    <div>
+      <h1>${escHtml(project || "Multi-Cam Rig Plan")}</h1>
+      <div class="sub">Still Speeding LLC · Timecode &amp; Audio Rig Plan</div>
+    </div>
   </div>
   <div class="meta">
-    <div>${date}</div>
-    <div><strong>${selectedRig.length}</strong> camera type${selectedRig.length !== 1 ? "s" : ""} &nbsp;·&nbsp; <strong>${totalUnits}</strong> unit${totalUnits !== 1 ? "s" : ""}</div>
+    ${meta("Date", date)}
+    ${meta("Prepared by", mixer)}
+    ${meta("Project rate", projectFps)}
   </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="k">Camera models</div><div class="v">${selectedRig.length}</div></div>
+  <div class="stat"><div class="k">Total bodies</div><div class="v">${totalUnits}</div></div>
+  <div class="stat"><div class="k">TC cables to pull</div><div class="v">${wiredUnits}</div></div>
+  <div class="stat"><div class="k">Rates every camera shares</div><div class="v sm">${commonRates.length ? commonRates.join(" · ") : "None"}</div></div>
 </div>
+
+${warnings.length ? `<div class="warn"><h2>Check before roll</h2><ul>${warnings.map(w => `<li>${w}</li>`).join("")}</ul></div>` : ""}
 
 <section>
   <h2>Cameras</h2>
   <table>
-    <thead><tr><th>Brand</th><th>Model</th><th style="text-align:center">Qty</th><th>TC Port</th><th>Audio In</th></tr></thead>
+    <thead><tr><th>#</th><th>Camera</th><th class="c">Qty</th><th>TC Input</th><th>Audio Input</th><th>Frame Rates</th><th>TC Run / Sync · Regen</th></tr></thead>
     <tbody>${cameraRows}</tbody>
   </table>
 </section>
 
 <section>
-  <h2>Timecode Ports</h2>
+  <h2>Timecode Cable Pull List</h2>
   <table>
-    <thead><tr><th>Port</th><th style="text-align:center">Total</th><th>Cameras</th></tr></thead>
-    <tbody>${portRows}</tbody>
+    <thead><tr><th class="c">✓</th><th>Camera Port</th><th>Suggested Sync Cable</th><th class="c">Qty</th><th>Cameras</th></tr></thead>
+    <tbody>${cableRows}</tbody>
   </table>
 </section>
 
-<div class="footer">Generated by Still Speeding LLC Camera &amp; Timecode Database</div>
-<script>window.onload = () => window.print();<\/script>
-</body></html>`;
+<section>
+  <h2>Jam-Sync Notes</h2>
+  <div class="notes">${noteRows}</div>
+</section>
 
+<div class="signoff"><div>TC jammed &amp; verified by</div><div>Time</div><div>Sound roll / Card</div></div>
+
+<footer>
+  <span>Generated by the Still Speeding LLC Camera Audio &amp; Timecode Database · ${escHtml(date)}</span>
+  <span>Connector data last checked ${escHtml(DATA_VERIFIED)} — confirm on the body before the shoot.</span>
+</footer>
+</div>
+<script>window.onload = () => setTimeout(() => window.print(), 300);<\/script>
+</body></html>`;
+        }
+
+        function downloadRigPDF() {
+            if (selectedRig.length === 0) {
+                showToast("No cameras in rig plan.", "error");
+                return;
+            }
             const w = window.open("", "_blank");
             if (!w) { showToast("Pop-up blocked — allow pop-ups and try again.", "error"); return; }
-            w.document.write(html);
+            w.document.write(buildRigPDFHtml());
             w.document.close();
         }
 
